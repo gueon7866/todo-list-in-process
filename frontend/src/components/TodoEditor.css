@@ -1,0 +1,11 @@
+.TodoEditor{
+    display: flex;
+    gap:10px;
+}
+
+.TodoEditor input{
+    flex:1;
+    padding:15px;
+    border:1px solid #eee;
+    border-radius: 5px;
+}
