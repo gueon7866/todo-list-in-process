@@ -1,19 +1,13 @@
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import TodoEditor from './components/TodoEditor'
-import Header from './components/Header'
-import TodoItem from './components/TodoItem'
-import TodoList from './components/TodoList'
 import { useState, useEffect } from 'react'
 import axios from "axios"
-
-
+import './App.css'
+import Header from './components/Header'
+import TodoEditor from './components/TodoEditor'
+import TodoList from './components/TodoList'
 function App() {
 
   const [todos, setTodos] = useState([])
   const API = `${import.meta.env.VITE_API_URL}/api/todos`
-  // const [count, setCount] = useState(0)
 
   useEffect(() => {
     const fetchTodos = async () => {
@@ -31,6 +25,7 @@ function App() {
     }
     fetchTodos()
   }, [])
+
 
   const onCreate = async (todoText) => {
     if (!todoText.trim()) return
@@ -52,69 +47,67 @@ function App() {
     }
   }
 
-
   const onDelete = async (id) => {
     try {
-      if (!confirm("정말 삭제할까요 ?"))
-        return
-      const { data } = await axios.delete(`${API}${id}`)
+      if (!confirm("정말 삭제할까요?")) return
+
+      const { data } = await axios.delete(`${API}/${id}`)
+
       if (Array.isArray(data?.todos)) {
         setTodos(data.todos)
         return
       }
-const deleteId=data?.deleteId?? data?.todo?._id ?? data?._id??id
-setTodos((prev)=> prev.filter((t)=>t.id!==deletedId))
 
+      const deletedId = data?.deletedId ?? data?.todo?._id ?? data?._id ?? id
+      setTodos((prev) => prev.filter((t) => t._id !== deletedId))
     } catch (error) {
-      console.log("추가 실패",error)
-
+      console.error("삭제 실패", error)
     }
   }
 
-  const onUpdateCheched=async(id,next)=>{
+  const onUpdateChecked = async (id, next) => {
+
     try {
 
-      const {data}=await axios.patch(`${API}/${id}/check`,{
-        isCompleted:next 
+      const { data } = await axios.patch(`${API}/${id}/check`, {
+        isCompleted: next
       })
 
-      if(Array.isArray(data?.todos)){
+      if (Array.isArray(data?.todos)) {
         setTodos(data.todos)
-      } else{
-        const updated=data?.todo?? data;
+      } else {
+        const updated = data?.todo ?? data;
         setTodos(
-          prev=>prev.map(t=>(t._id===updated._id? updated:t))
+          prev => prev.map(t => (t._id === updated._id ? updated : t))
         )
       }
-    }catch (error) {
-      console.error("체크 상태 업데이트 실패",error)
-
+    } catch (error) {
+      console.error("체크 상태 업데이트 실패", error)
     }
 
   }
+  const onUpdateText = async (id, next) => {
+    const value =next?.trim()
 
-  const onUpdateText =async(id,next)=>{
-    const value=next?.trim()
+    if(!value) return
 
-    if(!value) return 
 
     try {
 
-      const {data}=await axios.patch(`${API}/${id}/text`,{
-        text:value 
+      const { data } = await axios.patch(`${API}/${id}/text`, {
+        text:value
       })
 
-      if(Array.isArray(data?.todos)){
+      if (Array.isArray(data?.todos)) {
         setTodos(data.todos)
-      } else{
-        const updated=data?.todo?? data;
+      } else {
+        const updated = data?.todo ?? data;
         setTodos(
-          prev=>prev.map(t=>(t._id===updated._id? updated:t))
+          prev => prev.map(t => (t._id === updated._id ? updated : t))
         )
       }
-    }catch (error) {
-      console.error("체크 상태 업데이트 실패",error)
-
+    } catch (error) {
+      console.error("체크 상태 업데이트 실패", error)
     }
 
   }
@@ -123,12 +116,11 @@ setTodos((prev)=> prev.filter((t)=>t.id!==deletedId))
     <div className='App'>
       <Header />
       <TodoEditor onCreate={onCreate} />
-
-      <TodoList 
-      todos={Array.isArray(todos)?todos:[] }
-      onUpdateCheckhed={onUpdateCheched}
-      onUpdateText={onUpdateText}
-      onDelete={onDelete}/>
+      <TodoList
+        todos={Array.isArray(todos)? todos:[]}
+        onUpdateChecked={onUpdateChecked}
+        onUpdateText={onUpdateText}
+        onDelete={onDelete} />
     </div>
   )
 }
