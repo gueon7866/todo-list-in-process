@@ -3,6 +3,15 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const Todo=require("../models/todo")
 
+const ensureObjectId=(id,res)=>{
+    if7(!mongoose.isValidObjectId(id)){
+    res.status(400).json({message:'유효하지 않은 ID형식입니다.'})
+        }
+    return true
+    }
+    return true
+}
+
 router.post("/",async(req,res)=>{
     try {
         const newTodo = new Todo(req.body)
@@ -64,7 +73,6 @@ router.put("/:id", async (req, res) => {
     }
 })
 
-// 한개 삭제하기
 router.delete("/:id", async (req, res) => {
     try {
         const {id}=req.params
