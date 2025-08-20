@@ -9,7 +9,12 @@ const TodoList = ({todos}) => {
         <div className="todos-wrapper">
           {todos.map((todo,i)=>(
 
-            <TodoItem key={i} todo={todo}/>
+            <TodoItem key={i}
+             todo={todo}
+             onUpdateChecked={onUpdateChecked}
+             onDelete={onDelete}
+             onUpdatetext={onUpdatetext}
+             />
           ))}
         
         </div>
