@@ -2,18 +2,21 @@ const express = require("express")
 const mongoose=require("mongoose")
 const dotenv =require("dotenv")
 const cors=require("cors")
+const cookieParser = require("cookie-parser");
+
+
 
 dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 3000
-
+app.use(cookieParser()); // ★ 쿠키 파싱
 app.use(express.json())
 app.use(cors({
     origin:process.env.FRONT_ORIGIN,
     credentials:true
 }))
-
+app.use(cookieParser())
 mongoose
     .connect(process.env.MONGO_URI)
     .then(()=>console.log("MongoDB 연결 성공"))
@@ -24,7 +27,9 @@ mongoose
 const todoRoutes = require('./routes/todoRoutes')
 app.use('/api/todos',todoRoutes)
 
-
+// 게스트 로그인(익명 인증) 라우트
+const authRoutes = require('./routes/authRoutes');
+app.use('/api/auth', authRoutes);
 
 app.get('/',(req, res)=>{
     res.send("Hello Express")

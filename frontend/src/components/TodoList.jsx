@@ -1,11 +1,12 @@
-import React,{useState,useMemo}from 'react'
+import React,{useState,useMemo} from 'react'
 import './TodoList.css'
 import TodoItem from './TodoItem'
-const TodoList = ({todos,onDelete,onUpdateChecked,onUpdateText})=>
-{  const [q, setQ]=useState('')
+const TodoList = ({todos,onDelete,onUpdateChecked,onUpdateTodo}) => {
 
-  const filtered = useMemo(()=>{
-    
+  const [q, setQ]=useState('')
+
+  const filtered =useMemo(()=>{
+
     const kw = q.trim().toLowerCase()
 
     if(!kw) return todos;
@@ -16,10 +17,10 @@ const TodoList = ({todos,onDelete,onUpdateChecked,onUpdateText})=>
   return (
     <div className='TodoList'>
         <h4>Todo List 🌱</h4>
-        <input type="text"
+        <input type="text" 
         value={q}
         onChange={(e)=>setQ(e.target.value)}
-         placeholder='검색어를 입력하세요' />
+        placeholder='검색어를 입력하세요' />
         <div className="todos-wrapper">
           {filtered.map((todo,i)=>(
 
@@ -27,7 +28,7 @@ const TodoList = ({todos,onDelete,onUpdateChecked,onUpdateText})=>
             key={i} 
             todo={todo}
             onUpdateChecked={onUpdateChecked} 
-            onUpdateText={onUpdateText}
+            onUpdateTodo={onUpdateTodo}
             onDelete={onDelete}/>
           ))}
         

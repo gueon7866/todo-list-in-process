@@ -1,128 +1,105 @@
-import { useState, useEffect } from 'react'
-import axios from "axios"
-import './App.css'
-import Header from './components/Header'
-import TodoEditor from './components/TodoEditor'
-import TodoList from './components/TodoList'
-function App() {
+import React, { useState, useEffect } from 'react'
+import "./components/TodoItem.css";
+const TodoItem = ({ todo, onDelete, onUpdateChecked, onUpdateTodo }) => {
 
-  const [todos, setTodos] = useState([])
-  const API = `${import.meta.env.VITE_API_URL}/api/todos`
+  const [editing, setEditing] = useState(false)
+  const [text, setText] = useState(todo.text)
+  const isCompleted = !!todo.isCompleted
+
+
+  const toYmd = (d) => new Date(d).toISOString().slice(0, 10)//yyyy-mm-dd
+  const pickDate = (t) => t?.date ?? t?.createdAt ?? new Date()
+
+  const [dateStr, setDateStr] = useState(toYmd(pickDate(todo)))
 
   useEffect(() => {
-    const fetchTodos = async () => {
-      try {
-        const res = await axios.get(API)
-        const data = Array.isArray(res.data) ?
-          res.data : res.data.todos ?? []
-
-        setTodos(data)
-        console.log(data)
-
-      } catch (error) {
-        console.log("가져오기 실패", error)
-      }
+    if (!editing) {
+      setText(todo.text)
+      setDateStr(toYmd(pickDate(todo)))
     }
-    fetchTodos()
-  }, [])
 
+  }, [todo, editing])
 
-  const onCreate = async (todoText) => {
-    if (!todoText.trim()) return
-
-    try {
-
-      const res = await axios.post(API, { text: todoText.trim() })
-
-      const created = res.data?.todo ?? res.data
-
-      if (Array.isArray(res.data?.todos)) {
-        setTodos(res.data.todos)
-      } else {
-        setTodos(prev => [created, ...prev])
-      }
-
-    } catch (error) {
-      console.log("추가 실패", error)
-    }
+  const startEdit = () => {
+    setText(todo.text)
+    setDateStr(toYmd(pickDate(todo)))
+    setEditing(true)
+  }
+  const cancleEdit = () => {
+    setText(todo.text)
+    setEditing(false)
   }
 
-  const onDelete = async (id) => {
-    try {
-      if (!confirm("정말 삭제할까요?")) return
+  const saveEdit = async () => {
+    const next = text.trim()
+    const prevYmd=toYmd(pickDate(todo))
 
-      const { data } = await axios.delete(`${API}/${id}`)
-
-      if (Array.isArray(data?.todos)) {
-        setTodos(data.todos)
-        return
-      }
-
-      const deletedId = data?.deletedId ?? data?.todo?._id ?? data?._id ?? id
-      setTodos((prev) => prev.filter((t) => t._id !== deletedId))
-    } catch (error) {
-      console.error("삭제 실패", error)
+    if (!next || next === todo.text && prevYmd ===dateStr) {
+      return setEditing(false)
     }
+    const nextDateISO=new Date(`${dateStr}T00:00:00`).toISOString()
+
+    await onUpdateTodo(todo._id, {
+      text:next,
+      date:nextDateISO
+    })
+
+    setEditing(false)
   }
 
-  const onUpdateChecked = async (id, next) => {
-
-    try {
-
-      const { data } = await axios.patch(`${API}/${id}/check`, {
-        isCompleted: next
-      })
-
-      if (Array.isArray(data?.todos)) {
-        setTodos(data.todos)
-      } else {
-        const updated = data?.todo ?? data;
-        setTodos(
-          prev => prev.map(t => (t._id === updated._id ? updated : t))
-        )
-      }
-    } catch (error) {
-      console.error("체크 상태 업데이트 실패", error)
-    }
-
+  const handleKeyDown = () => {
+    if (e.key == 'Enter') saveEdit()
+    if (e.key == 'Escape') cancleEdit()
   }
-  const onUpdateText = async (id, next) => {
-    const value =next?.trim()
 
-    if(!value) return
-
-
-    try {
-
-      const { data } = await axios.patch(`${API}/${id}/text`, {
-        text:value
-      })
-
-      if (Array.isArray(data?.todos)) {
-        setTodos(data.todos)
-      } else {
-        const updated = data?.todo ?? data;
-        setTodos(
-          prev => prev.map(t => (t._id === updated._id ? updated : t))
-        )
-      }
-    } catch (error) {
-      console.error("체크 상태 업데이트 실패", error)
-    }
-
-  }
 
   return (
-    <div className='App'>
-      <Header />
-      <TodoEditor onCreate={onCreate} />
-      <TodoList
-        todos={Array.isArray(todos)? todos:[]}
-        onUpdateChecked={onUpdateChecked}
-        onUpdateText={onUpdateText}
-        onDelete={onDelete} />
+    <div className={`TodoItem ${isCompleted ? 'isCompleted' : ''}`}>
+      <input
+        type="checkbox"
+        checked={todo.isCompleted}
+        onChange={() => onUpdateChecked(todo._id, !todo.isCompleted)}
+        readOnly />
+      {editing ? (
+        <div className="edit-wrap">
+          <input
+            type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder='수정할 내용을 입력하세요'
+          />
+
+          <div className="date">
+            <input 
+            type="date" 
+            value={dateStr}
+            onChange={(e)=>setDateStr(e.target.value)}
+            />
+          </div>
+          <div className="btn-wrap">
+            <button className="updateBtn" onClick={saveEdit}>저장하기</button>
+            <button className="deleteBtn"
+              onClick={cancleEdit}
+            >취소</button>
+          </div>
+        </div>
+      ) : (
+        <div className="content-wrap">
+
+          <div className="content">{todo.text}</div>
+          <div className="date">{new Date(`${todo.date}`).toLocaleDateString()}</div>
+          <div className="btn-wrap">
+            <button className="updateBtn" onClick={startEdit}>수정</button>
+            <button className="deleteBtn"
+              onClick={() => onDelete(todo._id)}
+            >삭제</button>
+          </div>
+        </div>)}
+
+
     </div>
   )
 }
 
-export default App
+export default TodoItem
